@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyBook Pro — Login</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#0d1b4b 0%,#1a3c8f 50%,#0d47a1 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.bg-planes{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:0;}
+.plane{position:absolute;font-size:24px;opacity:0.07;animation:fly 20s linear infinite;}
+.plane:nth-child(1){top:10%;animation-duration:18s;}
+.plane:nth-child(2){top:40%;animation-duration:25s;animation-delay:-8s;}
+.plane:nth-child(3){top:70%;animation-duration:22s;animation-delay:-14s;}
+@keyframes fly{from{left:-5%}to{left:105%}}
+.wrap{position:relative;z-index:1;width:100%;max-width:440px;padding:20px;}
+.logo{text-align:center;margin-bottom:28px;}
+.logo h1{color:#fff;font-size:32px;font-weight:700;letter-spacing:1px;}
+.logo h1 span{color:#64b5f6;}
+.logo p{color:rgba(255,255,255,0.6);font-size:14px;margin-top:6px;}
+.card{background:#fff;border-radius:16px;padding:36px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.tabs{display:flex;margin-bottom:28px;border-bottom:2px solid #e8eaf6;}
+.tab{flex:1;padding:10px;text-align:center;font-size:15px;font-weight:600;color:#9e9e9e;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;}
+.tab.active{color:#1a3c8f;border-bottom-color:#1a3c8f;}
+.form{display:none;}
+.form.active{display:block;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px;}
+.field input{width:100%;padding:11px 14px;border:1.5px solid #dde1f0;border-radius:8px;font-size:14px;color:#333;transition:border .2s;}
+.field input:focus{outline:none;border-color:#1a3c8f;}
+.btn-main{width:100%;padding:13px;background:#1a3c8f;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:4px;}
+.btn-main:hover{background:#0d2b6e;}
+.msg{margin-top:14px;padding:11px 14px;border-radius:8px;font-size:13px;display:none;}
+.msg.ok{background:#e8f5e9;color:#2e7d32;display:block;}
+.msg.err{background:#ffebee;color:#c62828;display:block;}
+.demo{margin-top:20px;padding:14px;background:#f0f4ff;border-radius:8px;font-size:13px;color:#555;}
+.demo strong{color:#1a3c8f;display:block;margin-bottom:6px;}
+.demo-row{display:flex;justify-content:space-between;margin-top:4px;cursor:pointer;padding:3px 0;}
+.demo-row:hover{color:#1a3c8f;}
+.divider{text-align:center;margin:16px 0;font-size:12px;color:#aaa;}
+</style>
+</head>
+<body>
+<div class="bg-planes">
+  <div class="plane">✈</div>
+  <div class="plane">✈</div>
+  <div class="plane">✈</div>
+</div>
+<div class="wrap">
+  <div class="logo">
+    <h1>✈ Sky<span>Book</span> Pro</h1>
+    <p>India's Smart Flight Booking Platform</p>
+  </div>
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('login')">Login</div>
+      <div class="tab" onclick="switchTab('register')">Register</div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="form active" id="form-login">
+      <div class="field"><label>Email Address</label><input type="email" id="l-email" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="l-pwd" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn-main" onclick="doLogin()">Login to SkyBook</button>
+      <div class="msg" id="l-msg"></div>
+      <div class="demo">
+        <strong>Demo Accounts (click to fill):</strong>
+        <div class="demo-row" onclick="fill('admin@skybook.com','admin123')">👑 Admin — admin@skybook.com / admin123</div>
+        <div class="demo-row" onclick="fill('ravi@skybook.com','user123')">👤 User &nbsp;— ravi@skybook.com / user123</div>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="form" id="form-register">
+      <div class="field"><label>Full Name</label><input type="text" id="r-name" placeholder="Your full name"></div>
+      <div class="field"><label>Email Address</label><input type="email" id="r-email" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="r-pwd" placeholder="Choose a password"></div>
+      <button class="btn-main" onclick="doRegister()">Create Account</button>
+      <div class="msg" id="r-msg"></div>
+    </div>
+  </div>
+</div>
+<script>
+const API = "http://localhost:8080";
+
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active', (i===0&&t==='login')||(i===1&&t==='register')));
+  document.getElementById('form-login').classList.toggle('active', t==='login');
+  document.getElementById('form-register').classList.toggle('active', t==='register');
+}
+
+function fill(email, pwd) {
+  document.getElementById('l-email').value = email;
+  document.getElementById('l-pwd').value = pwd;
+}
+
+async function doLogin() {
+  const msg = document.getElementById('l-msg');
+  msg.className = 'msg';
+  const email = document.getElementById('l-email').value.trim();
+  const pwd   = document.getElementById('l-pwd').value.trim();
+  if (!email || !pwd) { msg.className='msg err'; msg.textContent='Please enter email and password'; return; }
+  try {
+    const r = await fetch(API+'/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password:pwd})});
+    const d = await r.json();
+    if (d.success) {
+      localStorage.setItem('token', d.token);
+      localStorage.setItem('role',  d.role);
+      localStorage.setItem('name',  d.name);
+      localStorage.setItem('uid',   d.user_id);
+      window.location.href = '/dashboard.html';
+    } else {
+      msg.className = 'msg err'; msg.textContent = d.error;
+    }
+  } catch(e) { msg.className='msg err'; msg.textContent='Cannot connect to server. Is server.py running?'; }
+}
+
+async function doRegister() {
+  const msg = document.getElementById('r-msg');
+  msg.className = 'msg';
+  const name  = document.getElementById('r-name').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const pwd   = document.getElementById('r-pwd').value.trim();
+  if (!name||!email||!pwd) { msg.className='msg err'; msg.textContent='All fields are required'; return; }
+  try {
+    const r = await fetch(API+'/api/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,email,password:pwd})});
+    const d = await r.json();
+    if (d.success) { msg.className='msg ok'; msg.textContent=d.message; setTimeout(()=>switchTab('login'),1500); }
+    else { msg.className='msg err'; msg.textContent=d.error; }
+  } catch(e) { msg.className='msg err'; msg.textContent='Cannot connect to server'; }
+}
+
+// Redirect if already logged in
+if (localStorage.getItem('token')) window.location.href = '/dashboard.html';
+</script>
+</body>
+</html>

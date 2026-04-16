@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SkyWings Pro — Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f4f8;color:#333;display:flex;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+#sidebar{width:240px;min-height:100vh;background:#0d1b4b;display:flex;flex-direction:column;flex-shrink:0;position:fixed;left:0;top:0;bottom:0;z-index:100;}
+.sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sb-logo h1{color:#fff;font-size:20px;font-weight:700;}
+.sb-logo h1 span{color:#64b5f6;}
+.sb-logo p{color:rgba(255,255,255,0.45);font-size:11px;margin-top:3px;}
+.sb-user{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:10px;}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:#1a3c8f;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;flex-shrink:0;}
+.sb-uname{color:#fff;font-size:13px;font-weight:600;}
+.sb-urole{color:rgba(255,255,255,0.45);font-size:11px;}
+.sb-badge{display:inline-block;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700;background:#64b5f6;color:#0d1b4b;margin-left:4px;}
+.sb-badge.admin{background:#ffb74d;color:#4e2e00;}
+nav{flex:1;padding:12px 0;}
+.nav-group{margin-bottom:4px;}
+.nav-label{padding:8px 20px 4px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:14px;transition:all .15s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:#fff;}
+.nav-item.active{background:rgba(100,181,246,0.15);color:#64b5f6;border-left-color:#64b5f6;}
+.nav-icon{font-size:16px;width:20px;text-align:center;}
+.sb-logout{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);}
+.sb-logout button{width:100%;padding:9px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15);border-radius:8px;cursor:pointer;font-size:13px;}
+.sb-logout button:hover{background:rgba(239,83,80,0.3);color:#ef9a9a;border-color:rgba(239,83,80,0.4);}
+
+/* ── MAIN ── */
+#main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e0e7f0;position:sticky;top:0;z-index:50;}
+.topbar h2{font-size:18px;color:#0d1b4b;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.tb-time{font-size:13px;color:#888;}
+.content{padding:24px 28px;flex:1;}
+
+/* ── PAGE ── */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ── STATS CARDS ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;}
+.stat{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-top:4px solid #1a3c8f;}
+.stat.green{border-top-color:#2e7d32;}
+.stat.orange{border-top-color:#e65100;}
+.stat.purple{border-top-color:#6a1b9a;}
+.stat.teal{border-top-color:#00695c;}
+.stat-num{font-size:28px;font-weight:700;color:#0d1b4b;}
+.stat-lbl{font-size:12px;color:#888;margin-top:4px;}
+.stat-sub{font-size:11px;color:#aaa;margin-top:2px;}
+
+/* ── SECTION HEADER ── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.sec-head h3{font-size:16px;color:#0d1b4b;font-weight:700;}
+.search-box{padding:8px 14px;border:1.5px solid #dde1f0;border-radius:8px;font-size:13px;width:220px;}
+.search-box:focus{outline:none;border-color:#1a3c8f;}
+
+/* ── TABLE ── */
+.tbl-wrap{background:#fff;border-radius:12px;overflow:auto;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:#0d1b4b;color:#fff;padding:12px 14px;text-align:left;white-space:nowrap;}
+tbody td{padding:11px 14px;border-bottom:1px solid #f0f4f8;white-space:nowrap;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#f5f8ff;}
+.empty-row{text-align:center;padding:40px;color:#bbb;font-size:14px;}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.b-green{background:#e8f5e9;color:#2e7d32;}
+.b-red{background:#ffebee;color:#c62828;}
+.b-orange{background:#fff3e0;color:#e65100;}
+.b-blue{background:#e3f2fd;color:#1565c0;}
+.b-purple{background:#f3e5f5;color:#6a1b9a;}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.btn:hover{opacity:.85;}
+.btn-blue{background:#1a3c8f;color:#fff;}
+.btn-green{background:#2e7d32;color:#fff;}
+.btn-red{background:#c62828;color:#fff;}
+.btn-gray{background:#e0e0e0;color:#333;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-icon{background:none;border:none;cursor:pointer;font-size:15px;padding:4px 6px;border-radius:6px;transition:background .15s;}
+.btn-icon:hover{background:#f0f4f8;}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:14px;padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:17px;color:#0d1b4b;font-weight:700;margin-bottom:20px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1.5px solid #dde1f0;border-radius:8px;font-size:13px;color:#333;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#1a3c8f;}
+.field textarea{resize:vertical;min-height:80px;}
+.modal-btns{display:flex;gap:10px;margin-top:18px;}
+.modal-btns .btn{flex:1;}
+.msg{margin-top:12px;padding:10px 14px;border-radius:8px;font-size:13px;display:none;}
+.msg.ok{background:#e8f5e9;color:#2e7d32;display:block;}
+.msg.err{background:#ffebee;color:#c62828;display:block;}
+
+/* ── FLIGHT CARDS (user view) ── */
+.flight-grid{display:grid;gap:14px;}
+.flight-card{background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 2px 10px rgba(0,0,0,0.06);display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.fc-airline{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;flex-shrink:0;}
+.fc-route{flex:1;min-width:160px;}
+.fc-cities{font-size:17px;font-weight:700;color:#0d1b4b;}
+.fc-time{font-size:12px;color:#888;margin-top:3px;}
+.fc-info{display:flex;gap:16px;font-size:12px;color:#888;flex-wrap:wrap;}
+.fc-info span{display:flex;flex-direction:column;align-items:center;}
+.fc-info strong{font-size:14px;color:#333;}
+.fc-price{font-size:20px;font-weight:700;color:#1a3c8f;}
+.fc-price span{font-size:12px;color:#888;font-weight:400;}
+.fc-book{flex-shrink:0;}
+
+/* ── AIRLINE CARDS ── */
+.airline-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.airline-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.06);text-align:center;}
+.ac-logo{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;margin:0 auto 12px;}
+.ac-name{font-size:15px;font-weight:700;color:#0d1b4b;}
+.ac-country{font-size:12px;color:#888;margin-top:2px;}
+.ac-flights{font-size:13px;color:#555;margin-top:8px;}
+.ac-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;}
+
+/* ── SQL PANEL ── */
+.sql-wrap{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.sql-wrap textarea{width:100%;height:120px;font-family:monospace;font-size:13px;padding:12px;border:1.5px solid #dde1f0;border-radius:8px;resize:vertical;}
+.sql-wrap textarea:focus{outline:none;border-color:#1a3c8f;}
+.sql-btns{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap;}
+.quick-queries{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.qbtn{padding:5px 12px;background:#f0f4ff;border:1px solid #c5cae9;border-radius:20px;font-size:12px;cursor:pointer;color:#1a3c8f;}
+.qbtn:hover{background:#e3f2fd;}
+.sql-result{margin-top:16px;}
+.sql-result .res-info{font-size:13px;color:#555;margin-bottom:10px;}
+
+/* ── BOOKING FORM (sidebar style) ── */
+.book-layout{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;}
+.book-form-card{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,0.06);position:sticky;top:80px;}
+.book-form-card h3{font-size:15px;font-weight:700;color:#0d1b4b;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid #f0f4f8;}
+
+@media(max-width:900px){
+  #sidebar{transform:translateX(-100%);}
+  #main{margin-left:0;}
+  .book-layout{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-logo">
+    <h1>✈ Sky<span>Book</span></h1>
+    <p>Flight Booking System</p>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sb-avatar">U</div>
+    <div>
+      <div class="sb-uname" id="sb-uname">User</div>
+      <div class="sb-urole"><span class="sb-badge" id="sb-badge">user</span></div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-group">
+      <div class="nav-label">Main</div>
+      <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('flights')" id="nav-flights">
+        <span class="nav-icon">✈️</span> Flights
+      </div>
+      <div class="nav-item" onclick="showPage('airlines')" id="nav-airlines">
+        <span class="nav-icon">🏢</span> Airlines
+      </div>
+      <div class="nav-item" onclick="showPage('bookings')" id="nav-bookings">
+        <span class="nav-icon">🎫</span> My Bookings
+      </div>
+    </div>
+    <div class="nav-group admin-only" style="display:none">
+      <div class="nav-label">Admin</div>
+      <div class="nav-item" onclick="showPage('customers')" id="nav-customers">
+        <span class="nav-icon">👥</span> Customers
+      </div>
+      <div class="nav-item" onclick="showPage('sqlrunner')" id="nav-sqlrunner">
+        <span class="nav-icon">🖥️</span> SQL Runner
+      </div>
+    </div>
+  </nav>
+  <div class="sb-logout">
+    <button onclick="logout()">⏏ Logout</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="topbar">
+    <h2 id="page-title">Dashboard</h2>
+    <div class="topbar-right">
+      <span class="tb-time" id="tb-time"></span>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats" id="stats-grid">
+        <div class="stat"><div class="stat-num" id="st-flights">-</div><div class="stat-lbl">Total Flights</div></div>
+        <div class="stat green"><div class="stat-num" id="st-bookings">-</div><div class="stat-lbl">Confirmed Bookings</div></div>
+        <div class="stat orange"><div class="stat-num" id="st-customers">-</div><div class="stat-lbl">Customers</div></div>
+        <div class="stat purple"><div class="stat-num" id="st-airlines">-</div><div class="stat-lbl">Airlines</div></div>
+        <div class="stat teal admin-only" style="display:none"><div class="stat-num" id="st-revenue">-</div><div class="stat-lbl">Total Revenue</div></div>
+      </div>
+      <div class="sec-head"><h3>Recent Flights</h3></div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>#</th><th>Airline</th><th>Route</th><th>Departure</th><th>Seats</th><th>Price</th><th>Status</th></tr></thead>
+        <tbody id="dash-flights"><tr><td colspan="7" class="empty-row">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- FLIGHTS PAGE -->
+    <div class="page" id="page-flights">
+      <div class="book-layout">
+        <!-- Left: flight list -->
+        <div>
+          <div class="sec-head">
+            <h3>Available Flights</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input class="search-box" id="fl-search" placeholder="Search city or airline..." oninput="filterFlights()">
+              <button class="btn btn-blue admin-only" style="display:none" onclick="openModal('modal-add-flight')">+ Add Flight</button>
+            </div>
+          </div>
+          <div class="flight-grid" id="flight-cards">
+            <div style="text-align:center;padding:40px;color:#bbb">Loading flights...</div>
+          </div>
+        </div>
+        <!-- Right: booking form -->
+        <div class="book-form-card" id="book-sidebar">
+          <h3>🎫 Book a Flight</h3>
+          <div class="field"><label>Selected Flight</label>
+            <select id="b-flight"><option value="">-- Select from list --</option></select>
+          </div>
+          <div class="field"><label>Number of Seats</label>
+            <input type="number" id="b-seats" value="1" min="1" max="10">
+          </div>
+          <div style="background:#f0f4ff;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;color:#1a3c8f;">
+            <strong>Estimated Total:</strong> <span id="b-total">₹0</span>
+          </div>
+          <button class="btn btn-blue" style="width:100%" onclick="doBook()">Confirm Booking</button>
+          <div class="msg" id="book-msg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AIRLINES PAGE -->
+    <div class="page" id="page-airlines">
+      <div class="sec-head">
+        <h3>Airlines</h3>
+        <button class="btn btn-blue admin-only" style="display:none" onclick="openModal('modal-add-airline')">+ Add Airline</button>
+      </div>
+      <div class="airline-grid" id="airline-cards">
+        <div style="text-align:center;padding:40px;color:#bbb">Loading...</div>
+      </div>
+    </div>
+
+    <!-- BOOKINGS PAGE -->
+    <div class="page" id="page-bookings">
+      <div class="sec-head">
+        <h3 id="bookings-title">My Bookings</h3>
+        <input class="search-box" id="bk-search" placeholder="Search bookings..." oninput="filterBookings()">
+      </div>
+      <div class="tbl-wrap">
+        <table><thead>
+          <tr><th>#</th><th>Customer</th><th>Airline</th><th>Route</th><th>Date</th><th>Seats</th><th>Total</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody id="bookings-body"><tr><td colspan="9" class="empty-row">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS (admin) -->
+    <div class="page" id="page-customers">
+      <div class="sec-head">
+        <h3>All Customers</h3>
+        <input class="search-box" id="cu-search" placeholder="Search customers..." oninput="filterCustomers()">
+      </div>
+      <div class="tbl-wrap">
+        <table><thead>
+          <tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Total Bookings</th><th>Joined</th></tr>
+        </thead>
+        <tbody id="customers-body"><tr><td colspan="6" class="empty-row">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- SQL RUNNER (admin) -->
+    <div class="page" id="page-sqlrunner">
+      <div class="sql-wrap">
+        <h3 style="font-size:15px;color:#0d1b4b;font-weight:700;margin-bottom:14px;">🖥️ SQL Query Runner</h3>
+        <div class="quick-queries">
+          <span style="font-size:12px;color:#888;align-self:center;">Quick:</span>
+          <div class="qbtn" onclick="setQuery('SELECT * FROM flights')">All Flights</div>
+          <div class="qbtn" onclick="setQuery('SELECT * FROM airlines')">All Airlines</div>
+          <div class="qbtn" onclick="setQuery('SELECT * FROM bookings ORDER BY booked_at DESC')">All Bookings</div>
+          <div class="qbtn" onclick="setQuery('SELECT * FROM customers')">All Customers</div>
+          <div class="qbtn" onclick="setQuery('SELECT * FROM users')">All Users</div>
+          <div class="qbtn" onclick="setQuery('SHOW TABLES')">Show Tables</div>
+          <div class="qbtn" onclick="setQuery('SELECT b.booking_id, c.name, f.departure, f.arrival, b.total_price FROM bookings b JOIN customers c ON b.customer_id=c.customer_id JOIN flights f ON b.flight_id=f.flight_id')">Booking Details</div>
+        </div>
+        <textarea id="sql-input" placeholder="Write your SQL query here...&#10;Example: SELECT * FROM flights WHERE status = 'On-time'"></textarea>
+        <div class="sql-btns">
+          <button class="btn btn-blue" onclick="runSQL()">▶ Run Query</button>
+          <button class="btn btn-gray" onclick="document.getElementById('sql-input').value='';document.getElementById('sql-result').innerHTML=''">Clear</button>
+        </div>
+        <div class="msg" id="sql-msg"></div>
+        <div class="sql-result" id="sql-result"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- Add/Edit Flight -->
+<div class="modal-bg" id="modal-add-flight">
+  <div class="modal">
+    <h3 id="flight-modal-title">Add New Flight</h3>
+    <input type="hidden" id="edit-flight-id">
+    <div class="field"><label>Airline</label><select id="f-airline"></select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label>From (Departure)</label><input type="text" id="f-dep" placeholder="e.g. Delhi"></div>
+      <div class="field"><label>To (Arrival)</label><input type="text" id="f-arr" placeholder="e.g. Mumbai"></div>
+      <div class="field"><label>Departure Time</label><input type="datetime-local" id="f-deptime"></div>
+      <div class="field"><label>Arrival Time</label><input type="datetime-local" id="f-arrtime"></div>
+      <div class="field"><label>Total Seats</label><input type="number" id="f-seats" value="180"></div>
+      <div class="field"><label>Price (₹)</label><input type="number" id="f-price" placeholder="e.g. 3499"></div>
+    </div>
+    <div class="field admin-edit-only" style="display:none"><label>Status</label>
+      <select id="f-status"><option>On-time</option><option>Delayed</option><option>Cancelled</option></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-gray" onclick="closeModal('modal-add-flight')">Cancel</button>
+      <button class="btn btn-blue" onclick="saveFlight()">Save Flight</button>
+    </div>
+    <div class="msg" id="flight-msg"></div>
+  </div>
+</div>
+
+<!-- Add/Edit Airline -->
+<div class="modal-bg" id="modal-add-airline">
+  <div class="modal">
+    <h3 id="airline-modal-title">Add New Airline</h3>
+    <input type="hidden" id="edit-airline-id">
+    <div class="field"><label>Airline Name</label><input type="text" id="a-name" placeholder="e.g. Air India"></div>
+    <div class="field"><label>Country</label><input type="text" id="a-country" placeholder="e.g. India"></div>
+    <div class="field"><label>IATA Code</label><input type="text" id="a-code" placeholder="e.g. AI" maxlength="4"></div>
+    <div class="field"><label>Brand Color</label><input type="color" id="a-color" value="#1a3c8f"></div>
+    <div class="modal-btns">
+      <button class="btn btn-gray" onclick="closeModal('modal-add-airline')">Cancel</button>
+      <button class="btn btn-blue" onclick="saveAirline()">Save Airline</button>
+    </div>
+    <div class="msg" id="airline-msg"></div>
+  </div>
+</div>
+
+<script>
+const API = "http://localhost:8080";
+const token = localStorage.getItem('token');
+const role  = localStorage.getItem('role');
+const uname = localStorage.getItem('name');
+const uid   = localStorage.getItem('uid');
+
+if (!token) window.location.href = '/';
+
+// ── INIT UI ───────────────────────────────────────────────────
+function initUI() {
+  document.getElementById('sb-uname').textContent = uname || 'User';
+  document.getElementById('sb-avatar').textContent = (uname||'U')[0].toUpperCase();
+  const badge = document.getElementById('sb-badge');
+  badge.textContent = role;
+  if (role === 'admin') {
+    badge.classList.add('admin');
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+  }
+  setInterval(() => {
+    document.getElementById('tb-time').textContent = new Date().toLocaleTimeString('en-IN');
+  }, 1000);
+}
+
+function hdrs() {
+  return { 'Content-Type': 'application/json', 'X-Token': token };
+}
+
+// ── PAGES ─────────────────────────────────────────────────────
+const pageTitles = {
+  dashboard:'Dashboard', flights:'Flights', airlines:'Airlines',
+  bookings: role==='admin'?'All Bookings':'My Bookings',
+  customers:'Customers', sqlrunner:'SQL Runner'
+};
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name)?.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[name] || name;
+  if (name==='flights')    { loadFlights(); loadAirlinesForSelect(); }
+  if (name==='airlines')   loadAirlines();
+  if (name==='bookings')   loadBookings();
+  if (name==='customers')  loadCustomers();
+  if (name==='dashboard')  loadDashboard();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function loadDashboard() {
+  const r = await fetch(API+'/api/stats', {headers:hdrs()});
+  const d = await r.json();
+  if (d.success) {
+    document.getElementById('st-flights').textContent   = d.data.flights;
+    document.getElementById('st-bookings').textContent  = d.data.bookings;
+    document.getElementById('st-customers').textContent = d.data.customers;
+    document.getElementById('st-airlines').textContent  = d.data.airlines;
+    document.getElementById('st-revenue').textContent   = '₹'+Number(d.data.revenue).toLocaleString('en-IN');
+  }
+  const r2 = await fetch(API+'/api/flights');
+  const d2 = await r2.json();
+  const tbody = document.getElementById('dash-flights');
+  if (!d2.data?.length) { tbody.innerHTML='<tr><td colspan="7" class="empty-row">No flights</td></tr>'; return; }
+  tbody.innerHTML = d2.data.slice(0,8).map(f=>`
+    <tr>
+      <td>${f.flight_id}</td>
+      <td><span style="background:${f.logo_color};color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">${f.code}</span> ${f.airline}</td>
+      <td>${f.departure} → ${f.arrival}</td>
+      <td>${fmtDt(f.departure_time)}</td>
+      <td>${f.available_seats}/${f.total_seats}</td>
+      <td>₹${Number(f.price).toLocaleString('en-IN')}</td>
+      <td><span class="badge ${f.status==='On-time'?'b-green':f.status==='Delayed'?'b-orange':'b-red'}">${f.status}</span></td>
+    </tr>`).join('');
+}
+
+// ── FLIGHTS ───────────────────────────────────────────────────
+let allFlights = [];
+async function loadFlights() {
+  const r = await fetch(API+'/api/flights');
+  const d = await r.json();
+  allFlights = d.data || [];
+  renderFlightCards(allFlights);
+  populateFlightSelect(allFlights);
+}
+
+function renderFlightCards(list) {
+  const wrap = document.getElementById('flight-cards');
+  if (!list.length) { wrap.innerHTML='<div style="text-align:center;padding:40px;color:#bbb">No flights found</div>'; return; }
+  wrap.innerHTML = list.map(f=>`
+    <div class="flight-card">
+      <div class="fc-airline" style="background:${f.logo_color}">${f.code}</div>
+      <div class="fc-route">
+        <div class="fc-cities">${f.departure} ✈ ${f.arrival}</div>
+        <div class="fc-time">${f.airline} &nbsp;|&nbsp; ${fmtDt(f.departure_time)} → ${fmtDt(f.arrival_time)}</div>
+      </div>
+      <div class="fc-info">
+        <span><strong>${f.available_seats}</strong>seats left</span>
+        <span><span class="badge ${f.status==='On-time'?'b-green':f.status==='Delayed'?'b-orange':'b-red'}">${f.status}</span></span>
+      </div>
+      <div>
+        <div class="fc-price">₹${Number(f.price).toLocaleString('en-IN')} <span>/seat</span></div>
+      </div>
+      <div class="fc-book" style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn btn-blue btn-sm" onclick="selectFlight(${f.flight_id},${f.price})">Select</button>
+        ${role==='admin'?`<button class="btn btn-gray btn-sm" onclick="editFlight(${f.flight_id})">Edit</button><button class="btn btn-red btn-sm" onclick="deleteFlight(${f.flight_id})">Delete</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function filterFlights() {
+  const q = document.getElementById('fl-search').value.toLowerCase();
+  renderFlightCards(allFlights.filter(f =>
+    f.airline.toLowerCase().includes(q) ||
+    f.departure.toLowerCase().includes(q) ||
+    f.arrival.toLowerCase().includes(q)
+  ));
+}
+
+function populateFlightSelect(flights) {
+  const sel = document.getElementById('b-flight');
+  sel.innerHTML = '<option value="">-- Select a flight --</option>' +
+    flights.filter(f=>f.available_seats>0).map(f=>
+      `<option value="${f.flight_id}" data-price="${f.price}">${f.airline}: ${f.departure}→${f.arrival} | ${fmtDt(f.departure_time)} | ₹${Number(f.price).toLocaleString('en-IN')}</option>`
+    ).join('');
+  sel.onchange = updateTotal;
+}
+
+function selectFlight(id, price) {
+  const sel = document.getElementById('b-flight');
+  sel.value = id;
+  updateTotal();
+  document.getElementById('book-sidebar').scrollIntoView({behavior:'smooth'});
+}
+
+function updateTotal() {
+  const sel = document.getElementById('b-flight');
+  const opt = sel.options[sel.selectedIndex];
+  const price = parseFloat(opt?.dataset?.price||0);
+  const seats = parseInt(document.getElementById('b-seats').value||1);
+  document.getElementById('b-total').textContent = '₹'+(price*seats).toLocaleString('en-IN');
+}
+
+document.getElementById('b-seats')?.addEventListener('input', updateTotal);
+
+async function doBook() {
+  const msg = document.getElementById('book-msg');
+  msg.className = 'msg';
+  const fid   = document.getElementById('b-flight').value;
+  const seats = document.getElementById('b-seats').value;
+  if (!fid) { msg.className='msg err'; msg.textContent='Please select a flight'; return; }
+  const r = await fetch(API+'/api/book', {method:'POST', headers:hdrs(), body:JSON.stringify({flight_id:fid, seats})});
+  const d = await r.json();
+  msg.className = d.success ? 'msg ok' : 'msg err';
+  msg.textContent = d.success ? d.message : d.error;
+  if (d.success) { loadFlights(); loadDashboard(); }
+}
+
+// ── AIRLINES ──────────────────────────────────────────────────
+let allAirlines = [];
+async function loadAirlines() {
+  const r = await fetch(API+'/api/airlines');
+  const d = await r.json();
+  allAirlines = d.data || [];
+  const wrap = document.getElementById('airline-cards');
+  if (!allAirlines.length) { wrap.innerHTML='<div style="color:#bbb;padding:40px">No airlines</div>'; return; }
+  wrap.innerHTML = allAirlines.map(a=>`
+    <div class="airline-card">
+      <div class="ac-logo" style="background:${a.logo_color}">${a.code}</div>
+      <div class="ac-name">${a.name}</div>
+      <div class="ac-country">🌍 ${a.country}</div>
+      <div class="ac-flights">${a.total_flights} flight(s)</div>
+      ${role==='admin'?`<div class="ac-actions">
+        <button class="btn btn-gray btn-sm" onclick="editAirline(${a.airline_id})">Edit</button>
+        <button class="btn btn-red btn-sm" onclick="deleteAirline(${a.airline_id})">Delete</button>
+      </div>`:''}
+    </div>`).join('');
+}
+
+async function loadAirlinesForSelect() {
+  const r = await fetch(API+'/api/airlines');
+  const d = await r.json();
+  allAirlines = d.data || [];
+  document.getElementById('f-airline').innerHTML =
+    allAirlines.map(a=>`<option value="${a.airline_id}">${a.name} (${a.code})</option>`).join('');
+}
+
+// ── BOOKINGS ──────────────────────────────────────────────────
+let allBookings = [];
+async function loadBookings() {
+  if (role==='admin') document.getElementById('bookings-title').textContent='All Bookings';
+  const r = await fetch(API+'/api/bookings', {headers:hdrs()});
+  const d = await r.json();
+  allBookings = d.data || [];
+  renderBookings(allBookings);
+}
+
+function renderBookings(list) {
+  const tb = document.getElementById('bookings-body');
+  if (!list.length) { tb.innerHTML='<tr><td colspan="9" class="empty-row">No bookings found</td></tr>'; return; }
+  tb.innerHTML = list.map(b=>`
+    <tr>
+      <td>${b.booking_id}</td>
+      <td>${b.customer}</td>
+      <td>${b.airline}</td>
+      <td>${b.departure} → ${b.arrival}</td>
+      <td>${fmtDt(b.departure_time)}</td>
+      <td>${b.seats}</td>
+      <td>₹${Number(b.total_price).toLocaleString('en-IN')}</td>
+      <td><span class="badge ${b.status==='Confirmed'?'b-green':'b-red'}">${b.status}</span></td>
+      <td>${b.status==='Confirmed'?`<button class="btn btn-red btn-sm" onclick="doCancel(${b.booking_id})">Cancel</button>`:'-'}</td>
+    </tr>`).join('');
+}
+
+function filterBookings() {
+  const q = document.getElementById('bk-search').value.toLowerCase();
+  renderBookings(allBookings.filter(b =>
+    b.customer?.toLowerCase().includes(q)||b.airline?.toLowerCase().includes(q)||
+    b.departure?.toLowerCase().includes(q)||b.arrival?.toLowerCase().includes(q)
+  ));
+}
+
+async function doCancel(bid) {
+  if (!confirm('Cancel this booking?')) return;
+  const r = await fetch(API+'/api/cancel', {method:'POST', headers:hdrs(), body:JSON.stringify({booking_id:bid})});
+  const d = await r.json();
+  alert(d.success ? d.message : d.error);
+  if (d.success) { loadBookings(); loadDashboard(); }
+}
+
+// ── CUSTOMERS ─────────────────────────────────────────────────
+let allCustomers = [];
+async function loadCustomers() {
+  const r = await fetch(API+'/api/customers', {headers:hdrs()});
+  const d = await r.json();
+  allCustomers = d.data || [];
+  renderCustomers(allCustomers);
+}
+
+function renderCustomers(list) {
+  const tb = document.getElementById('customers-body');
+  if (!list.length) { tb.innerHTML='<tr><td colspan="6" class="empty-row">No customers</td></tr>'; return; }
+  tb.innerHTML = list.map(c=>`
+    <tr>
+      <td>${c.customer_id}</td>
+      <td>${c.name}</td>
+      <td>${c.email}</td>
+      <td>${c.phone||'-'}</td>
+      <td>${c.total_bookings}</td>
+      <td>${fmtDt(c.created_at)}</td>
+    </tr>`).join('');
+}
+
+function filterCustomers() {
+  const q = document.getElementById('cu-search').value.toLowerCase();
+  renderCustomers(allCustomers.filter(c =>
+    c.name.toLowerCase().includes(q)||c.email.toLowerCase().includes(q)
+  ));
+}
+
+// ── FLIGHT CRUD ───────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function editFlight(id) {
+  const f = allFlights.find(x=>x.flight_id===id);
+  if (!f) return;
+  document.getElementById('flight-modal-title').textContent = 'Edit Flight';
+  document.getElementById('edit-flight-id').value = id;
+  document.getElementById('f-airline').value = allAirlines.find(a=>a.name===f.airline)?.airline_id || '';
+  document.getElementById('f-dep').value     = f.departure;
+  document.getElementById('f-arr').value     = f.arrival;
+  document.getElementById('f-deptime').value = f.departure_time?.slice(0,16)||'';
+  document.getElementById('f-arrtime').value = f.arrival_time?.slice(0,16)||'';
+  document.getElementById('f-seats').value   = f.total_seats;
+  document.getElementById('f-price').value   = f.price;
+  document.getElementById('f-status').value  = f.status;
+  document.querySelector('.admin-edit-only').style.display = '';
+  openModal('modal-add-flight');
+}
+
+async function saveFlight() {
+  const eid = document.getElementById('edit-flight-id').value;
+  const body = {
+    airline_id:    document.getElementById('f-airline').value,
+    departure:     document.getElementById('f-dep').value,
+    arrival:       document.getElementById('f-arr').value,
+    departure_time:document.getElementById('f-deptime').value,
+    arrival_time:  document.getElementById('f-arrtime').value,
+    total_seats:   document.getElementById('f-seats').value,
+    price:         document.getElementById('f-price').value,
+    status:        document.getElementById('f-status').value,
+  };
+  const endpoint = eid ? '/api/edit_flight' : '/api/add_flight';
+  if (eid) body.flight_id = eid;
+  const r = await fetch(API+endpoint, {method:'POST', headers:hdrs(), body:JSON.stringify(body)});
+  const d = await r.json();
+  const msg = document.getElementById('flight-msg');
+  msg.className = d.success ? 'msg ok' : 'msg err';
+  msg.textContent = d.success ? d.message : d.error;
+  if (d.success) { setTimeout(()=>{ closeModal('modal-add-flight'); loadFlights(); }, 800); }
+}
+
+async function deleteFlight(id) {
+  if (!confirm('Delete this flight? All bookings will also be deleted.')) return;
+  const r = await fetch(API+'/api/delete_flight', {method:'POST', headers:hdrs(), body:JSON.stringify({flight_id:id})});
+  const d = await r.json();
+  alert(d.success ? d.message : d.error);
+  if (d.success) loadFlights();
+}
+
+// ── AIRLINE CRUD ──────────────────────────────────────────────
+function editAirline(id) {
+  const a = allAirlines.find(x=>x.airline_id===id);
+  if (!a) return;
+  document.getElementById('airline-modal-title').textContent = 'Edit Airline';
+  document.getElementById('edit-airline-id').value = id;
+  document.getElementById('a-name').value    = a.name;
+  document.getElementById('a-country').value = a.country;
+  document.getElementById('a-code').value    = a.code;
+  document.getElementById('a-color').value   = a.logo_color;
+  openModal('modal-add-airline');
+}
+
+async function saveAirline() {
+  const eid = document.getElementById('edit-airline-id').value;
+  const body = {
+    name:       document.getElementById('a-name').value,
+    country:    document.getElementById('a-country').value,
+    code:       document.getElementById('a-code').value,
+    logo_color: document.getElementById('a-color').value,
+  };
+  const endpoint = eid ? '/api/edit_airline' : '/api/add_airline';
+  if (eid) body.airline_id = eid;
+  const r = await fetch(API+endpoint, {method:'POST', headers:hdrs(), body:JSON.stringify(body)});
+  const d = await r.json();
+  const msg = document.getElementById('airline-msg');
+  msg.className = d.success ? 'msg ok' : 'msg err';
+  msg.textContent = d.success ? d.message : d.error;
+  if (d.success) { setTimeout(()=>{ closeModal('modal-add-airline'); loadAirlines(); }, 800); }
+}
+
+async function deleteAirline(id) {
+  if (!confirm('Delete this airline? All its flights will also be deleted.')) return;
+  const r = await fetch(API+'/api/delete_airline', {method:'POST', headers:hdrs(), body:JSON.stringify({airline_id:id})});
+  const d = await r.json();
+  alert(d.success ? d.message : d.error);
+  if (d.success) loadAirlines();
+}
+
+// ── SQL RUNNER ────────────────────────────────────────────────
+function setQuery(q) { document.getElementById('sql-input').value = q; }
+
+async function runSQL() {
+  const query = document.getElementById('sql-input').value.trim();
+  const msg   = document.getElementById('sql-msg');
+  const res   = document.getElementById('sql-result');
+  msg.className = 'msg'; res.innerHTML = '';
+  if (!query) { msg.className='msg err'; msg.textContent='Please enter a query'; return; }
+  const r = await fetch(API+'/api/sql', {method:'POST', headers:hdrs(), body:JSON.stringify({query})});
+  const d = await r.json();
+  if (!d.success) { msg.className='msg err'; msg.textContent=d.error; return; }
+  if (d.message) { msg.className='msg ok'; msg.textContent=d.message; return; }
+  msg.className='msg ok'; msg.textContent=`${d.count} row(s) returned`;
+  if (!d.rows?.length) { res.innerHTML='<div style="color:#888;font-size:13px">No rows returned</div>'; return; }
+  res.innerHTML = `<div class="tbl-wrap"><table>
+    <thead><tr>${d.columns.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>${d.rows.map(row=>`<tr>${d.columns.map(c=>`<td>${row[c]??'-'}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── LOGOUT ────────────────────────────────────────────────────
+async function logout() {
+  await fetch(API+'/api/logout', {method:'POST', headers:hdrs()});
+  localStorage.clear();
+  window.location.href = '/';
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function fmtDt(dt) {
+  if (!dt) return '-';
+  return new Date(dt).toLocaleString('en-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+
+// Close modal on bg click
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target===bg) bg.classList.remove('open'); });
+});
+
+// Reset modals on open
+document.getElementById('modal-add-flight').addEventListener('click', ()=>{});
+
+// ── START ─────────────────────────────────────────────────────
+initUI();
+loadDashboard();
+</script>
+</body>
+</html>
