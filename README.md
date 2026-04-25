@@ -1,5 +1,4 @@
 # ✈️ Flight Booking System
-# ✈️ Flight Booking System
 
 ## 📌 Overview
 This project is a Flight Booking System developed using Python and web technologies. 
